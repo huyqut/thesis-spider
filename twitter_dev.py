@@ -1,9 +1,10 @@
-import os
 import getpass
+import os
 import bcrypt
 import twitter
-from utils.constants import *
-from utils.aes_cipher import AESCipher
+
+from aes_cipher import AESCipher
+from constants import *
 
 
 class TwitterDev:
@@ -47,19 +48,19 @@ class TwitterDev:
         self.api = twitter.Api(consumer_key, consumer_secret, access_token_key, access_token_secret)
 
     @staticmethod
-    def prompt_init(self):
+    def prompt_init():
         while True:
             answer = input('Do you want to (re)initialize a new Twitter developer account? (Y/n) ')
             if answer == 'n' or answer == 'N':
                 return False
             elif answer == 'y' or answer == 'Y' or len(answer) == 0:
-                self.__data_fill()
+                TwitterDev.__data_fill()
                 return True
             else:
                 print('Answer is not recognizable. Please try again.')
 
     @staticmethod
-    def __data_fill(self):
+    def __data_fill():
         username = input('Username: ')
         password = getpass.getpass('Password: ', stream = None)
         consumer_key = input('Consumer Key: ')
