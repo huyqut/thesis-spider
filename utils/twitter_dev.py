@@ -1,3 +1,4 @@
+import os
 import getpass
 import bcrypt
 import twitter
@@ -63,10 +64,13 @@ class TwitterDev:
         access_token_key = input('Access Token Key: ')
         access_token_secret = input('Access Token Secret: ')
         cipher = AESCipher(password)
-        with open(username, 'w') as data:
+        data_folder = '.data'
+        if not os.path.exists(data_folder):
+            os.makedirs(data_folder)
+        data_path = data_folder + '/' + username
+        with open(data_path, 'w') as data:
             data.write(bcrypt.hashpw(password, bcrypt.gensalt()) + '\n')
             data.write(cipher.encrypt(consumer_key) + '\n')
             data.write(cipher.encrypt(consumer_secret) + '\n')
             data.write(cipher.encrypt(access_token_key) + '\n')
             data.write(cipher.encrypt(access_token_secret) + '\n')
-
