@@ -22,7 +22,7 @@ class TwitterDev:
                 break
             except OSError as e:
                 print('Data of Twitter developer is not accessible: ' + str(e))
-                if not self.__prompt_init():
+                if not self.prompt_init():
                     raise Exception('Cannot create Twitter developer data at this time.')
 
         auth_success = False
@@ -46,7 +46,8 @@ class TwitterDev:
         access_token_secret = cipher.decrypt(encrypted_access_token_secret)
         self.api = twitter.Api(consumer_key, consumer_secret, access_token_key, access_token_secret)
 
-    def __prompt_init(self):
+    @staticmethod
+    def prompt_init(self):
         while True:
             answer = input('Do you want to (re)initialize a new Twitter developer account? (Y/n) ')
             if answer == 'n' or answer == 'N':
@@ -57,6 +58,7 @@ class TwitterDev:
             else:
                 print('Answer is not recognizable. Please try again.')
 
+    @staticmethod
     def __data_fill(self):
         username = input('Username: ')
         password = getpass.getpass('Password: ', stream = None)
