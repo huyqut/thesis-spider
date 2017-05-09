@@ -1,0 +1,11 @@
+# Mac OS redundant folder
+.DS_Store/
+
+# Jetbrains folder
+.idea/
+
+# Data folder
+.data/
+
+# Python's cache
+__pycache__/
