@@ -13,13 +13,13 @@ class TwitterDev:
     def __init__(self, data_path):
         while True:
             try:
-                with open(data_path, 'r') as f:
-                    lines = f.readlines()
-                    hashed_password = lines[0]
-                    encrypted_consumer_key = lines[1]
-                    encrypted_consumer_secret = lines[2]
-                    encrypted_access_token_key = lines[3]
-                    encrypted_access_token_secret = lines[4]
+                with open(data_path, 'rb') as f:
+                    hashed_password = f.read(BCRYPT_LENGTH)
+                    encrypted_consumer_key = f.read(48)
+                    encrypted_consumer_secret = f.read(80)
+                    encrypted_access_token_key = f.read(80)
+                    encrypted_access_token_secret = f.read(80)
+
                 break
             except OSError as e:
                 print('Data of Twitter developer is not accessible: ' + str(e))
@@ -31,10 +31,11 @@ class TwitterDev:
         password = ''
         for auth_try in (1, max_try):
             password = getpass.getpass('Password: ', stream = None)
-            if not bcrypt.checkpw(password, hashed_password):
+            if not bcrypt.checkpw(password.encode('utf-8'), hashed_password):
                 print('Password is not correct. (' + str(auth_try) + '/' + str(max_try) + ')')
                 continue
             auth_success = True
+            break
 
         if not auth_success:
             raise Exception('Authentication failed!')
@@ -46,6 +47,8 @@ class TwitterDev:
         access_token_key = cipher.decrypt(encrypted_access_token_key)
         access_token_secret = cipher.decrypt(encrypted_access_token_secret)
         self.api = twitter.Api(consumer_key, consumer_secret, access_token_key, access_token_secret)
+        credentials = self.api.VerifyCredentials()
+        print(credentials)
 
     @staticmethod
     def prompt_init():
@@ -71,9 +74,9 @@ class TwitterDev:
         if not os.path.exists(DATA_FOLDER):
             os.makedirs(DATA_FOLDER)
         data_path = DATA_FOLDER + '/' + username
-        with open(data_path, 'w') as data:
-            data.write(bcrypt.hashpw(password, bcrypt.gensalt()) + '\n')
-            data.write(cipher.encrypt(consumer_key) + '\n')
-            data.write(cipher.encrypt(consumer_secret) + '\n')
-            data.write(cipher.encrypt(access_token_key) + '\n')
-            data.write(cipher.encrypt(access_token_secret) + '\n')
+        with open(data_path, 'wb') as data:
+            data.write(bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()))
+            data.write(cipher.encrypt(consumer_key))
+            data.write(cipher.encrypt(consumer_secret))
+            data.write(cipher.encrypt(access_token_key))
+            data.write(cipher.encrypt(access_token_secret))
