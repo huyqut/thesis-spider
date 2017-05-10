@@ -47,8 +47,6 @@ class TwitterDev:
         access_token_key = cipher.decrypt(encrypted_access_token_key)
         access_token_secret = cipher.decrypt(encrypted_access_token_secret)
         self.api = twitter.Api(consumer_key, consumer_secret, access_token_key, access_token_secret)
-        credentials = self.api.VerifyCredentials()
-        print(credentials)
 
     @staticmethod
     def prompt_init():
