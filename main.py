@@ -17,7 +17,3 @@ try:
 except Exception as e:
     print('Error: ' + str(e))
     exit(2)
-
-
-# url = 'http://www.bbc.com/news/world-us-canada-39821789'
-# places = get_place_context(url=url)
