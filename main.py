@@ -1,6 +1,6 @@
 from twitter_dev import *
 from spider import *
-
+from geograpy import *
 
 if not os.path.exists(DATA_FOLDER):
     try:
@@ -18,3 +18,6 @@ except Exception as e:
     print('Error: ' + str(e))
     exit(2)
 
+
+# url = 'http://www.bbc.com/news/world-us-canada-39821789'
+# places = get_place_context(url=url)
