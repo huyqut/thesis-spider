@@ -1,6 +1,8 @@
 from twitter_dev import *
 from spider import *
-from geograpy import *
+import warnings
+
+warnings.filterwarnings("ignore", category = DeprecationWarning)
 
 if not os.path.exists(DATA_FOLDER):
     try:
@@ -13,7 +15,9 @@ if not os.path.exists(DATA_FOLDER):
 username = input('Username: ')
 try:
     twitterDev = TwitterDev(DATA_FOLDER + '/' + username)
-    Spider.crawl_feeds(twitterDev)
+    spider = Spider(twitterDev)
+    #spider.crawl_feeds()
+    spider.locate_feeds()
 except Exception as e:
     print('Error: ' + str(e))
     exit(2)
