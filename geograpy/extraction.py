@@ -11,6 +11,8 @@ class Extractor(object):
         self.text = text
         self.url = url
         self.places = []
+        self.people = []
+        self.organs = []
     
     def set_text(self):
         if not self.text and self.url:
@@ -18,7 +20,6 @@ class Extractor(object):
             a.download()
             a.parse()
             self.text = a.text
-
 
     def find_entities(self):
         self.set_text()
@@ -28,5 +29,9 @@ class Extractor(object):
 
         for ne in nes:
             if type(ne) is nltk.tree.Tree:
-                if (ne.label() == 'GPE' or ne.label() == 'PERSON' or ne.label() == 'ORGANIZATION'):
+                if ne.label() == 'GPE':
                     self.places.append(u' '.join([i[0] for i in ne.leaves()]))
+                elif ne.label() == 'PERSON':
+                    self.people.append(u' '.join([i[0] for i in ne.leaves()]))
+                elif ne.label() == 'ORGANIZATION':
+                    self.organs.append(u' '.join([i[0] for i in ne.leaves()]))
