@@ -21,6 +21,7 @@ class Extractor(object):
             a.parse()
             self.text = a.text
 
+
     def find_entities(self):
         self.set_text()
 

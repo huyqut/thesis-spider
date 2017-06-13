@@ -1,6 +1,7 @@
 from geograpy.extraction import Extractor
 from geograpy.places import PlaceContext
 
+
 def get_place_context(url=None, text=None):
     e = Extractor(url=url, text=text)
     e.find_entities()
