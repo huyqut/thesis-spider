@@ -1,6 +1,9 @@
 # Mac OS redundant folder
 .DS_Store/
 
+# Model files (too large to be pushed on GitHub)
+model/
+
 # Log files
 log/
 
