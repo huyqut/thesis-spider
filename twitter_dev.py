@@ -37,7 +37,7 @@ class TwitterDev:
         max_try = 3
         password = ''
         for auth_try in (1, max_try):
-            password = getpass.getpass('Password: ', stream = None)
+            password = '123456'#getpass.getpass('Password: ', stream = None)
             if not bcrypt.checkpw(password.encode('utf-8'), hashed_password):
                 logger.warn('Password is not correct. (' + str(auth_try) + '/' + str(max_try) + ')')
                 continue

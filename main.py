@@ -17,13 +17,13 @@ if not os.path.exists(DATA_FOLDER):
         logger.error('Finish thesis: ' + str(e))
         exit(1)
 
-username = input('Username: ')
+username = 'lap089'#input('Username: ')
 try:
     logger.info('User ' + username + " requests authentication")
     twitter_dev = TwitterDev(DATA_FOLDER + '/' + username)
     news_converter = NewsConverter()
-    crawler = Thread(target=crawl_feeds, args=(twitter_dev, 10000))
-    locator = Thread(target=locate_feeds, args=(news_converter, int(round(time.time() * 1000))))
+    crawler = Thread(target=crawl_feeds, args=(twitter_dev, 600000)) #milliseconds
+    locator = Thread(target=locate_feeds, args=(news_converter, 0))
     crawler.start()
     locator.start()
     crawler.join()
