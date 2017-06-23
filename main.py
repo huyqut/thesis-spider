@@ -23,7 +23,7 @@ try:
     twitter_dev = TwitterDev(DATA_FOLDER + '/' + username)
     news_converter = NewsConverter()
     crawler = Thread(target=crawl_feeds, args=(twitter_dev, 600000)) #milliseconds
-    locator = Thread(target=locate_feeds, args=(news_converter, 0))
+    locator = Thread(target=locate_feeds, args=(news_converter, 1497952748))
     crawler.start()
     locator.start()
     crawler.join()

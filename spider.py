@@ -94,12 +94,16 @@ def locate_feeds(news_converter: NewsConverter, latest: int = 0, ):
 
         def run(self):
             try:
-
                 logger.info('Parse ' + self.url)
                 article = Article(self.url)
                 article.download()
                 article.parse()
-                logger.info('Description for ' + self.url + '\n' + article.meta_description + '\n\n')
+                # filter twitter links
+                if "twitter" in article.canonical_link:
+                    logger.info('Remove ' + article.canonical_link)
+                    news_collection.remove({"id": self.tweet_id})
+                    return
+                logger.info('Title for ' + self.url + '\n' + article.title + '\n\n')
                 logger.info('Latest: ' + str(latest))
                 vector_converter = VectorConverter(article.text)
                 geography_extractor = GeographyExtractor(article.text)
@@ -112,7 +116,9 @@ def locate_feeds(news_converter: NewsConverter, latest: int = 0, ):
                                            {'$set': {'places': geography_extractor.places,
                                                      'people': geography_extractor.people,
                                                      'organs': geography_extractor.organs,
-                                                     'vector': vector}})
+                                                     'vector': vector,
+                                                     'title': article.title,
+                                                     'text': article.text}})
                 for place in geography_extractor.places:
                     self.collection.update_one({'place': place},
                                                {'$inc': {'count': 1}},
@@ -122,8 +128,10 @@ def locate_feeds(news_converter: NewsConverter, latest: int = 0, ):
                 logger.error(str(e))
 
     location_collection = database.location_collection()
+    duplicate_urls = {}
+    tasks = []
     while True:
-        documents = news_collection.find({'created_at': {'$gte': latest}}).limit(50)
+        documents = news_collection.find({'created_at': {'$gte': latest}}).limit(100)
         logger.info('Found ' + str(documents.count()) + ' after ' + str(latest))
         if documents.count() == 0:
             if crawler_finish:
@@ -131,20 +139,33 @@ def locate_feeds(news_converter: NewsConverter, latest: int = 0, ):
             logger.warn('Nap and back in 5 seconds')
             time.sleep(5)
             continue
-        tasks = []
+
+        # Clean up remaining tasks
+        if len(tasks) != 0:
+            logger.info('Cleaning up remaining tasks')
+            for task in tasks:
+                task.join()
+            tasks.clear()
+
         logger.info('Start Locating')
         index = 0
+
         for doc in documents:
             try:
                 ref = doc['reference']
-                thread = PageParser(doc['id'], ref, location_collection)
-                tasks.append(thread)
-                thread.start()
-                index += 1
-                if index % 10 == 0 or index == documents.count():
-                    for task in tasks:
-                        task.join()
-                    latest = doc['created_at']
-                    tasks.clear()
+                latest = doc['created_at']
+                if ref not in duplicate_urls:
+                    duplicate_urls[ref] = True
+                    if len(duplicate_urls) == 500:
+                        duplicate_urls.clear()
+                    thread = PageParser(doc['id'], ref, location_collection)
+                    tasks.append(thread)
+                    thread.start()
+                    time.sleep(3)
+                    index += 1
+                    if index % 5 == 0:
+                        for task in tasks:
+                            task.join()
+                        tasks.clear()
             except Exception as e:
                 logger.error(doc['reference'] + ' : ' + str(e))
