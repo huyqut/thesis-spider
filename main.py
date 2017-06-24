@@ -16,17 +16,18 @@ if not os.path.exists(DATA_FOLDER):
     except Exception as e:
         logger.error('Finish thesis: ' + str(e))
         exit(1)
-
+# new filter: 1498255645
+# old filter: 1497987747
 username = 'lap089'#input('Username: ')
 try:
     logger.info('User ' + username + " requests authentication")
-    twitter_dev = TwitterDev(DATA_FOLDER + '/' + username)
+    #twitter_dev = TwitterDev(DATA_FOLDER + '/' + username)
     news_converter = NewsConverter()
-    crawler = Thread(target=crawl_feeds, args=(twitter_dev, 600000)) #milliseconds
-    locator = Thread(target=locate_feeds, args=(news_converter, 1497952748))
-    crawler.start()
+    #crawler = Thread(target=crawl_feeds, args=(twitter_dev, 600000)) #milliseconds 1497987747
+    locator = Thread(target=locate_feeds, args=(news_converter, 1498258389))
+    #crawler.start()
     locator.start()
-    crawler.join()
+    #crawler.join()
     locator.join()
 except Exception as e:
     logger.error('Finish thesis: ' + str(e))
