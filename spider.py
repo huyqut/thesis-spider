@@ -28,11 +28,12 @@ def crawl_feeds(dev: TwitterDev, duration: int = 0):
             logger.info('Friends: ' + str(friends))
             logger.info('Start crawling')
             start = int(round(time.time()) * 1000)
-            link_list = ['cnn.it', 'nyti.ms', 'nbcnews' ,'apne.ws', 'reut.rs', 'wapo.st', 'abcn.ws',
-                         'ti.me','cbsn.ws', 'huffingtonpost.com', 'cnb.cx',
+            link_list = ['cnn.it', 'nyti.ms', 'nbcnews', 'apne.ws', 'reut.rs', 'wapo.st', 'abcn.ws',
+                         'ti.me', 'cbsn.ws', 'huffingtonpost.com', 'cnb.cx',
                          'huffp.st', 'forbes.com', 'telegraph.co', 'cnn.com', 'trib.al',
-                         ]
-            ignore_list = ['bit.ly', 'twitter', 'tinyurl', 'goo.gl', 'facebook.com']
+                         'express.co', 'gu.com', 'bloom.bg', 'hill.cm', 'natgeo.com',
+                         'pbs.org', 'washingtonpost']
+            ignore_list = ['bit.ly', 'twitter', 'tinyurl', 'goo.gl', 'facebook.com', ]
             dupliate_urls = {}
             for status in dev.api.GetStreamFilter(follow=friends):
                 urls = status['entities']['urls']
@@ -44,13 +45,12 @@ def crawl_feeds(dev: TwitterDev, duration: int = 0):
                     continue
 
                 if not any(x in url for x in link_list):
+                    logger.info('Skip link ' + url)
                     continue
 
-                if url in dupliate_urls:
+                if news_collection.find({'reference': url}).count() > 0:
+                    logger.info('Skip duplicated ' + url)
                     continue
-                dupliate_urls[url] = True
-                if len(dupliate_urls) == 1000:
-                    dupliate_urls.clear()
 
                 timestamp = int(time.mktime(time.strptime(status['created_at'], '%a %b %d %H:%M:%S +0000 %Y')))
 
@@ -116,8 +116,9 @@ def locate_feeds(news_converter: NewsConverter, latest: int = 0, ):
                 if "twitter" in article.canonical_link:
                     logger.info('delete ' + article.canonical_link)
                     news_collection.remove({"id": self.tweet_id})
-
-                logger.info('Title for ' + self.url + '\n' + article.title + '\n\n')
+                    return
+                logger.info(
+                    'Title for ' + article.top_image + '  -  ' + article.canonical_link + '\n' + article.title + '\n\n')
                 logger.info('Latest: ' + str(latest))
                 vector_converter = VectorConverter(article.text)
                 geography_extractor = GeographyExtractor(article.text)
@@ -132,7 +133,8 @@ def locate_feeds(news_converter: NewsConverter, latest: int = 0, ):
                                                      'organs': geography_extractor.organs,
                                                      'vector': vector,
                                                      'title': article.title,
-                                                     'text': article.text}})
+                                                     'text': article.text,
+                                                     'image': article.top_image}})
                 for place in geography_extractor.places:
                     self.collection.update_one({'place': place},
                                                {'$inc': {'count': 1}},
@@ -147,12 +149,6 @@ def locate_feeds(news_converter: NewsConverter, latest: int = 0, ):
     while True:
         documents = news_collection.find({'created_at': {'$gte': latest}}).limit(100)
         logger.info('Found ' + str(documents.count()) + ' after ' + str(latest))
-        if documents.count() < 5:
-            if crawler_finish:
-                break
-            logger.warn('Nap and back in 5 seconds')
-            time.sleep(5)
-            continue
 
         # Clean up remaining tasks
         if len(tasks) != 0:
@@ -161,6 +157,13 @@ def locate_feeds(news_converter: NewsConverter, latest: int = 0, ):
                 task.join()
             tasks.clear()
 
+        if documents.count() == 1:
+            if crawler_finish:
+                break
+            logger.warn('Nap and back in 120 seconds')
+            time.sleep(120)
+            continue
+
         logger.info('Start Locating')
         index = 0
 
@@ -168,21 +171,29 @@ def locate_feeds(news_converter: NewsConverter, latest: int = 0, ):
             try:
                 ref = doc['reference']
                 latest = doc['created_at']
-                text = doc.get('text')
-                if text is not None:
+                image = doc.get('image')
+
+                if latest >= 1498253429:
+                    return
+
+                if image is not None:
+                    logger.info('image skip')
                     continue
-                if ref not in duplicate_urls:
-                    duplicate_urls[ref] = True
-                    if len(duplicate_urls) == 1000:
-                        duplicate_urls.clear()
-                    thread = PageParser(doc['id'], ref, location_collection)
-                    tasks.append(thread)
-                    thread.start()
-                    time.sleep(3)
-                    index += 1
-                    if index % 5 == 0:
-                        for task in tasks:
-                            task.join()
-                        tasks.clear()
+                if news_collection.find({'reference': ref}).count() > 1:
+                    logger.info('delete duplicate ' + ref)
+                    news_collection.remove({"id": doc['id']})
+                    continue
+
+                thread = PageParser(doc['id'], ref, location_collection)
+                tasks.append(thread)
+                thread.start()
+                time.sleep(5)
+                index += 1
+                if index % 5 == 0:
+                    for task in tasks:
+                        task.join()
+                    tasks.clear()
+
+
             except Exception as e:
                 logger.error(doc['reference'] + ' : ' + str(e))
