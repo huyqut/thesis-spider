@@ -354,7 +354,7 @@ def evaluate(model):
         for key in dict_docs:
             if key != max_key:
                 print(key, dict_doc_datas[key][0].path)
-                neigh.kneighbors([dict_doc_datas[key][0].vec], 2)
+                print(neigh.kneighbors([dict_doc_datas[key][0].vec], 2))
         print('\n')
     print('Sum of cluster = ', cluster_sum, '/', doc_sum)
     print('Percentage = ', cluster_sum / doc_sum)
