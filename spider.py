@@ -28,11 +28,12 @@ def crawl_feeds(dev: TwitterDev, duration: int = 0):
             logger.info('Friends: ' + str(friends))
             logger.info('Start crawling')
             start = int(round(time.time()) * 1000)
-            link_list = ['cnn.it', 'nyti.ms', 'nbcnews', 'apne.ws', 'reut.rs', 'wapo.st', 'abcn.ws',
-                         'ti.me', 'cbsn.ws', 'huffingtonpost.com', 'cnb.cx',
+            link_list = ['cnn.it', 'nyti.ms', 'nbcnews', 'apne.ws', 'reut.rs', 'wapo.st',
+                         'abcn.ws', 'nbcbay.com', 'bbc.in', 'huff.to',
+                         'ti.me', 'cbsn.ws', 'huffingtonpost.com', 'cnb.cx', 'cnnmon.ie',
                          'huffp.st', 'forbes.com', 'telegraph.co', 'cnn.com', 'trib.al',
                          'express.co', 'gu.com', 'bloom.bg', 'hill.cm', 'natgeo.com',
-                         'pbs.org', 'washingtonpost']
+                         'pbs.org', 'washingtonpost', 'news.sky.com']
             ignore_list = ['bit.ly', 'twitter', 'tinyurl', 'goo.gl', 'facebook.com', ]
             dupliate_urls = {}
             for status in dev.api.GetStreamFilter(follow=friends):
@@ -112,9 +113,14 @@ def locate_feeds(news_converter: NewsConverter, latest: int = 0, ):
                 logger.info('Parse ' + self.url)
                 article = Article(self.url)
                 article.download()
+                if article.download_exception_msg and "404" in article.download_exception_msg:
+                    logger.error('404 not found, delete... ' + self.url)
+                    news_collection.remove({"id": self.tweet_id})
+                    return
                 article.parse()
-                if "twitter" in article.canonical_link:
-                    logger.info('delete ' + article.canonical_link)
+                ignore_list = ["twitter.com", "youtube.com", "facebook.com", "instagram.com"]
+                if any(x in article.canonical_link for x in ignore_list):
+                    print('delete ' + article.canonical_link)
                     news_collection.remove({"id": self.tweet_id})
                     return
                 logger.info(
@@ -160,8 +166,8 @@ def locate_feeds(news_converter: NewsConverter, latest: int = 0, ):
         if documents.count() == 1:
             if crawler_finish:
                 break
-            logger.warn('Nap and back in 120 seconds')
-            time.sleep(120)
+            logger.warn('Nap and back in 500 seconds')
+            time.sleep(500)
             continue
 
         logger.info('Start Locating')
@@ -172,9 +178,6 @@ def locate_feeds(news_converter: NewsConverter, latest: int = 0, ):
                 ref = doc['reference']
                 latest = doc['created_at']
                 image = doc.get('image')
-
-                if latest >= 1498253429:
-                    return
 
                 if image is not None:
                     logger.info('image skip')
@@ -187,7 +190,7 @@ def locate_feeds(news_converter: NewsConverter, latest: int = 0, ):
                 thread = PageParser(doc['id'], ref, location_collection)
                 tasks.append(thread)
                 thread.start()
-                time.sleep(5)
+                time.sleep(7)
                 index += 1
                 if index % 5 == 0:
                     for task in tasks:

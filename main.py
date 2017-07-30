@@ -18,13 +18,13 @@ if not os.path.exists(DATA_FOLDER):
         exit(1)
 # new filter: 1498356805
 # old filter: 1497997330
-username = 'lap089'#input('Username: ')
+username = input('Username: ')
 try:
     logger.info('User ' + username + " requests authentication")
     twitter_dev = TwitterDev(DATA_FOLDER + '/' + username)
     news_converter = NewsConverter()
     crawler = Thread(target=crawl_feeds, args=(twitter_dev, 600000)) #milliseconds 1497987747
-    locator = Thread(target=locate_feeds, args=(news_converter, 1498204188))
+    locator = Thread(target=locate_feeds, args=(news_converter, 1499792848))
     crawler.start()
     locator.start()
     crawler.join()
