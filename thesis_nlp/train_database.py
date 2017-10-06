@@ -6,4 +6,4 @@ def train_database(host: str = 'localhost', port: int = 27017):
 
 
 def train_collection():
-    return train_database()['train-collection']
+    return train_database()['tm-collection']

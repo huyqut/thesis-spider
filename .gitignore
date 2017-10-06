@@ -3,6 +3,11 @@
 
 # Model files (too large to be pushed on GitHub)
 model/
+thesis_nlp/datasets/
+thesis_nlp/temp/
+thesis_nlp/model/
+thesis_nlp/data/
+
 
 # Log files
 log/

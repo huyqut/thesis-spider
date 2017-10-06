@@ -1,4 +1,5 @@
 import nltk
+from nltk.tag.stanford import StanfordNERTagger
 from newspaper import Article
 from .utils import remove_non_ascii
 
@@ -26,7 +27,8 @@ class Extractor(object):
         self.set_text()
 
         text = nltk.word_tokenize(self.text)
-        nes = nltk.ne_chunk(nltk.pos_tag(text))
+        st = StanfordNERTagger('../ner-model.ser.gz', '../stanford-ner.jar')
+        nes = nltk.ne_chunk(st.tag(text))
 
         for ne in nes:
             if type(ne) is nltk.tree.Tree:
