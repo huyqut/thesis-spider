@@ -1,11 +1,12 @@
 from geograpy.extraction import Extractor
 from geograpy.places import PlaceContext
 
+
 def get_place_context(url=None, text=None):
     e = Extractor(url=url, text=text)
     e.find_entities()
 
-    pc = PlaceContext(e.places)
+    pc = PlaceContext(e.places, e.people, e.organs)
     pc.set_countries()
     pc.set_regions()
     pc.set_cities()
